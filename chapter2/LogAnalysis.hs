@@ -49,3 +49,21 @@ getTimestamp s = read s :: Int
 
 getSeverity :: String -> Int
 getSeverity s = read s :: Int
+
+insert :: LogMessage -> MessageTree -> MessageTree
+insert (Unknown _) ms = ms
+insert lm Leaf = Node Leaf lm Leaf
+insert (LogMessage {}) un@(Node _ (Unknown _) _) = un
+insert lmi@(LogMessage _ tsi _) (Node left lme@(LogMessage _ tse _) right) = 
+  if tsi > tse then
+    Node left lme (insert lmi right)
+  else Node (insert lmi left) lme right
+
+build :: [LogMessage] -> MessageTree
+build = foldr insert Leaf
+
+inOrder :: MessageTree -> [LogMessage]
+inOrder Leaf = []
+inOrder (Node _ (Unknown _) _) = []
+inOrder (Node left lm@(LogMessage {}) right) = inOrder left ++  [lm] ++ inOrder right
+
