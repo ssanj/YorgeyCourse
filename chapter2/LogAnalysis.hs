@@ -4,9 +4,11 @@ module LogAnalysis where
 
 import Log
 import Data.List.Split
+import Data.List (isInfixOf)
 import Data.Char
 
 -- TODO: Refactor
+-- exercise 1
 parseMessage :: String -> LogMessage
 parseMessage l = createMessages $ splitOn " " l
                   where
@@ -19,7 +21,7 @@ parseMessage l = createMessages $ splitOn " " l
                     
                     createMessages tokens@("W":_) | length tokens >= 3 =
                       let ts = (head . drop 1) tokens in
-                      if isNumeric ts then
+                      if isNumeric ts then  
                         LogMessage Warning (getTimestamp ts) (unwords $ drop 2 tokens)
                       else Unknown $ unwords tokens                      
 
@@ -50,6 +52,7 @@ getTimestamp s = read s :: Int
 getSeverity :: String -> Int
 getSeverity s = read s :: Int
 
+-- exercise 2
 insert :: LogMessage -> MessageTree -> MessageTree
 insert (Unknown _) ms = ms
 insert lm Leaf = Node Leaf lm Leaf
@@ -59,11 +62,38 @@ insert lmi@(LogMessage _ tsi _) (Node left lme@(LogMessage _ tse _) right) =
     Node left lme (insert lmi right)
   else Node (insert lmi left) lme right
 
+-- exercise 3
 build :: [LogMessage] -> MessageTree
 build = foldr insert Leaf
 
+-- exercise 4
 inOrder :: MessageTree -> [LogMessage]
 inOrder Leaf = []
 inOrder (Node _ (Unknown _) _) = []
 inOrder (Node left lm@(LogMessage {}) right) = inOrder left ++  [lm] ++ inOrder right
+
+-- exercise 5
+whatWentWrong :: [LogMessage] -> [String]
+whatWentWrong xs = map getMessage (relevant 50 $ sortByTimestamp xs)
+
+containingWord :: String -> [LogMessage] -> [String]
+containingWord w xs = filter (isInfixOf w) $ map getMessage $ sortByTimestamp xs
+
+getMessage :: LogMessage -> String
+getMessage (LogMessage Warning _ msg) = msg
+getMessage (LogMessage Info _ msg) = msg
+getMessage (LogMessage (Error _) _ msg) = msg
+getMessage (Unknown _) = ""
+
+sortByTimestamp :: [LogMessage] -> [LogMessage]
+sortByTimestamp = inOrder . build
+
+relevant :: Int -> [LogMessage] -> [LogMessage]
+relevant severity = filter matchingSeverity 
+                    where
+                         matchingSeverity :: LogMessage -> Bool
+                         matchingSeverity (LogMessage (Error sev) _ _) | sev > severity = True
+                         matchingSeverity _ = False
+
+
 
