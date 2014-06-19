@@ -95,5 +95,26 @@ relevant severity = filter matchingSeverity
                          matchingSeverity (LogMessage (Error sev) _ _) | sev > severity = True
                          matchingSeverity _ = False
 
+-- verification methods
 
+verify1 :: LogMessage
+verify1 = parseMessage "E 2 562 help help"
+
+verify2 :: LogMessage
+verify2 = parseMessage "I 29 la la la"
+
+verify3 :: LogMessage
+verify3 = parseMessage "This is not in the right format"
+
+verify4 :: IO [LogMessage]
+verify4 = testParse parse 10 "error.log"
+
+verify5 :: IO [String]
+verify5 = testWhatWentWrong parse whatWentWrong "sample.log"
+
+verify6 :: IO [String]
+verify6 = testWhatWentWrong parse whatWentWrong "error.log"
+
+verify7 :: IO [String]
+verify7 = testWhatWentWrong parse (containingWord "mustard") "error.log"
 
