@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module LogAnalysis where
+module LogAnalysis2 where
 
 import Log
 import Data.List.Split
@@ -13,44 +13,69 @@ parseMessage :: String -> LogMessage
 parseMessage l = createMessages $ splitOn " " l
                   where
                     createMessages :: [String] -> LogMessage
-                    createMessages tokens@("I":_) | length tokens >= 3 =
-                      let ts = (head . drop 1) tokens in
-                      if isNumeric ts then
-                        LogMessage Info (getTimestamp ts) (unwords $ drop 2 tokens)
-                      else Unknown $ unwords tokens  
-                    
-                    createMessages tokens@("W":_) | length tokens >= 3 =
-                      let ts = (head . drop 1) tokens in
-                      if isNumeric ts then  
-                        LogMessage Warning (getTimestamp ts) (unwords $ drop 2 tokens)
-                      else Unknown $ unwords tokens                      
+                    createMessages xs | isInfoMessage xs =
+                      let ts = toTS (xs !! 1)
+                          msg = unwords $ drop 2 xs
+                      in LogMessage Info ts msg
 
-                    createMessages tokens@("E":_) | length tokens >= 4 =
-                      let sv = (head . drop 1) tokens
-                          ts =  (head . drop 2) tokens
-                      in 
-                      if isSeverity sv && isNumeric ts then
-                        LogMessage (Error $ getSeverity sv) (getTimestamp ts) (unwords $ drop 3 tokens)
-                      else Unknown $ unwords tokens  
+                    createMessages xs | isWarningMessage xs =  
+                      let ts = toTS (xs !! 1)
+                          msg = unwords $ drop 2 xs
+                      in LogMessage Warning ts msg
 
+                    createMessages xs | isErrorMessage xs =  
+                      let sev = toSeverity (xs !! 1)
+                          ts = toTS (xs !! 2)
+                          msg = unwords $ drop 3 xs
+                      in LogMessage (Error sev) ts msg                      
+                                      
                     createMessages line =  Unknown $ unwords line
 
 parse :: String -> [LogMessage]
 parse content = map parseMessage (lines content)
 
+isInfoMessage :: [String] -> Bool
+isInfoMessage xs = iwTokens xs && isInfoType (head xs) && isTS (xs !! 1)
+
+isWarningMessage :: [String] -> Bool
+isWarningMessage xs = iwTokens xs && isWarningType (head xs) && isTS (xs !! 1)
+
+isErrorMessage :: [String] -> Bool
+isErrorMessage xs = errorTokens xs && isErrorType (head xs) && isSeverity (xs !! 1) && isTS (xs !! 2)
+ 
+isInfoType :: String -> Bool
+isInfoType = ("I" ==)
+
+isWarningType :: String -> Bool
+isWarningType = ("W" ==)
+
+isErrorType :: String -> Bool
+isErrorType = ("E" ==)
+
+-- has at least 3 tokens needed by Info and Warning message types.
+iwTokens :: [String] -> Bool
+iwTokens = atleastTokens 3
+
+errorTokens :: [String] -> Bool
+errorTokens = atleastTokens 4
+
+atleastTokens :: Int -> [String] -> Bool
+atleastTokens n xs = length xs >= n
+
 isNumeric :: String -> Bool
-isNumeric [] = False
-isNumeric (x:[]) = isNumber x
-isNumeric (x:xs) = isNumber x && isNumeric xs
+isNumeric = all isDigit
+
+isTS :: String -> Bool
+isTS = isNumeric
 
 isSeverity :: String -> Bool
 isSeverity xs = isNumeric xs && (let val = (read xs :: Int) in val >= 1 && val <= 100)
 
-getTimestamp :: String -> Int
-getTimestamp s = read s :: Int
+toTS :: String -> Int
+toTS s = read s :: Int
 
-getSeverity :: String -> Int
-getSeverity s = read s :: Int
+toSeverity :: String -> Int
+toSeverity s = read s :: Int
 
 -- exercise 2
 insert :: LogMessage -> MessageTree -> MessageTree
