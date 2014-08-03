@@ -1,11 +1,24 @@
 {-# OPTIONS_GHC -Wall #-}
 
-module LogAnalysis2 where
+module Chapter2.LogAnalysis2 (parseMessage,
+                     parse,
+                     insert,
+                     build,
+                     inOrder,
+                     whatWentWrong,
+                     verify1,
+                     verify2,
+                     verify3,
+                     verify4,
+                     verify5,
+                     verify6,
+                     verify7)
+ where
 
-import Log
-import Data.List.Split
+import Chapter2.Log
 import Data.List (isInfixOf)
 import Data.Char
+import System.FilePath.Posix
 
 -- LogFormat
 -- ^[I|W|(E Severity)] Timestamp Text$
@@ -13,59 +26,15 @@ import Data.Char
 -- TODO: Refactor
 -- exercise 1
 parseMessage :: String -> LogMessage
-parseMessage l = createMessages $ splitOn " " l
-                  where
-                    createMessages :: [String] -> LogMessage
-                    createMessages xs | isInfoMessage xs =
-                      buildLM (\x -> (drop 1 x, Info)) createLM xs
-
-                    createMessages xs | isWarningMessage xs =  
-                      buildLM (\x -> (drop 1 x, Warning)) createLM xs
-
-                    createMessages xs | isErrorMessage xs =  
-                      buildLM (\x -> (drop 2 x, Error (toSeverity $ x !! 1))) createLM xs
-                                      
-                    createMessages line =  Unknown $ unwords line
+parseMessage line = case words line of
+                      "I" : ts : msg | isTS ts -> LogMessage Info (toTS ts) (unwords msg)
+                      "W" : ts : msg | isTS ts -> LogMessage Warning (toTS ts) (unwords msg)
+                      "E" : sv : ts : msg | isSeverity sv && isTS ts -> LogMessage (Error (toSeverity sv)) (toTS ts) (unwords msg)
+                      _ -> Unknown line
 
 parse :: String -> [LogMessage]
 parse content = map parseMessage (lines content)
 
-buildLM :: ([String] -> ([String], MessageType)) -> ([String] -> MessageType -> LogMessage) -> [String] -> LogMessage
-buildLM mtf logf xs = let (r, mt) = mtf xs in
-                      logf r mt
-
-createLM :: [String] -> MessageType -> LogMessage                       
-createLM xs mt =  let ts = toTS (head xs)
-                      msg = unwords $ drop 1 xs
-                  in LogMessage mt ts msg
-
-isInfoMessage :: [String] -> Bool
-isInfoMessage xs = iwTokens xs && isInfoType (head xs) && isTS (xs !! 1)
-
-isWarningMessage :: [String] -> Bool
-isWarningMessage xs = iwTokens xs && isWarningType (head xs) && isTS (xs !! 1)
-
-isErrorMessage :: [String] -> Bool
-isErrorMessage xs = errorTokens xs && isErrorType (head xs) && isSeverity (xs !! 1) && isTS (xs !! 2)
- 
-isInfoType :: String -> Bool
-isInfoType = ("I" ==)
-
-isWarningType :: String -> Bool
-isWarningType = ("W" ==)
-
-isErrorType :: String -> Bool
-isErrorType = ("E" ==)
-
--- has at least 3 tokens needed by Info and Warning message types.
-iwTokens :: [String] -> Bool
-iwTokens = atleastTokens 3
-
-errorTokens :: [String] -> Bool
-errorTokens = atleastTokens 4
-
-atleastTokens :: Int -> [String] -> Bool
-atleastTokens n xs = length xs >= n
 
 isNumeric :: String -> Bool
 isNumeric = all isDigit
@@ -127,6 +96,15 @@ relevant severity = filter matchingSeverity
 
 -- verification methods
 
+basePath :: FilePath
+basePath = "src/Chapter2"
+
+errorLog :: FilePath
+errorLog = basePath </> "error.log"
+
+sampleLog :: FilePath
+sampleLog = basePath </> "sample.log"
+
 verify1 :: LogMessage
 verify1 = parseMessage "E 2 562 help help"
 
@@ -137,14 +115,14 @@ verify3 :: LogMessage
 verify3 = parseMessage "This is not in the right format"
 
 verify4 :: IO [LogMessage]
-verify4 = testParse parse 10 "error.log"
+verify4 = testParse parse 10 (errorLog)
 
 verify5 :: IO [String]
-verify5 = testWhatWentWrong parse whatWentWrong "sample.log"
+verify5 = testWhatWentWrong parse whatWentWrong sampleLog
 
 verify6 :: IO [String]
-verify6 = testWhatWentWrong parse whatWentWrong "error.log"
+verify6 = testWhatWentWrong parse whatWentWrong errorLog
 
 verify7 :: IO [String]
-verify7 = testWhatWentWrong parse (containingWord "mustard") "error.log"
+verify7 = testWhatWentWrong parse (containingWord "mustard") errorLog
 
