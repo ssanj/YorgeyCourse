@@ -7,6 +7,9 @@ import Data.List.Split
 import Data.List (isInfixOf)
 import Data.Char
 
+-- LogFormat
+-- ^[I|W|(E Severity)] Timestamp Text$
+
 -- TODO: Refactor
 -- exercise 1
 parseMessage :: String -> LogMessage
@@ -14,25 +17,27 @@ parseMessage l = createMessages $ splitOn " " l
                   where
                     createMessages :: [String] -> LogMessage
                     createMessages xs | isInfoMessage xs =
-                      let ts = toTS (xs !! 1)
-                          msg = unwords $ drop 2 xs
-                      in LogMessage Info ts msg
+                      buildLM (\x -> (drop 1 x, Info)) createLM xs
 
                     createMessages xs | isWarningMessage xs =  
-                      let ts = toTS (xs !! 1)
-                          msg = unwords $ drop 2 xs
-                      in LogMessage Warning ts msg
+                      buildLM (\x -> (drop 1 x, Warning)) createLM xs
 
                     createMessages xs | isErrorMessage xs =  
-                      let sev = toSeverity (xs !! 1)
-                          ts = toTS (xs !! 2)
-                          msg = unwords $ drop 3 xs
-                      in LogMessage (Error sev) ts msg                      
+                      buildLM (\x -> (drop 2 x, Error (toSeverity $ x !! 1))) createLM xs
                                       
                     createMessages line =  Unknown $ unwords line
 
 parse :: String -> [LogMessage]
 parse content = map parseMessage (lines content)
+
+buildLM :: ([String] -> ([String], MessageType)) -> ([String] -> MessageType -> LogMessage) -> [String] -> LogMessage
+buildLM mtf logf xs = let (r, mt) = mtf xs in
+                      logf r mt
+
+createLM :: [String] -> MessageType -> LogMessage                       
+createLM xs mt =  let ts = toTS (head xs)
+                      msg = unwords $ drop 1 xs
+                  in LogMessage mt ts msg
 
 isInfoMessage :: [String] -> Bool
 isInfoMessage xs = iwTokens xs && isInfoType (head xs) && isTS (xs !! 1)
@@ -111,9 +116,11 @@ getMessage (Unknown _) = ""
 sortByTimestamp :: [LogMessage] -> [LogMessage]
 sortByTimestamp = inOrder . build
 
+-- remove this
 relevant :: Int -> [LogMessage] -> [LogMessage]
 relevant severity = filter matchingSeverity 
                     where
+                         -- make this a top-level function
                          matchingSeverity :: LogMessage -> Bool
                          matchingSeverity (LogMessage (Error sev) _ _) | sev > severity = True
                          matchingSeverity _ = False
