@@ -76,7 +76,7 @@ whatWentWrong :: [LogMessage] -> [String]
 whatWentWrong xs = map getMessage (relevant 50 $ sortByTimestamp xs)
 
 containingWord :: String -> [LogMessage] -> [String]
-containingWord w xs = filter (isInfixOf w) $ map getMessage $ sortByTimestamp xs
+containingWord w = filter (isInfixOf w) . map getMessage . sortByTimestamp
 
 getMessage :: LogMessage -> String
 getMessage (LogMessage _ _ msg) = msg
