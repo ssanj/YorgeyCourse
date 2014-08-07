@@ -73,7 +73,7 @@ inOrder (Node left lm@(LogMessage {}) right) = inOrder left ++  [lm] ++ inOrder 
 
 -- exercise 5
 whatWentWrong :: [LogMessage] -> [String]
-whatWentWrong xs = map getMessage (relevant 50 $ sortByTimestamp xs)
+whatWentWrong = map getMessage . filter (matchingSeverity 50) . sortByTimestamp
 
 containingWord :: String -> [LogMessage] -> [String]
 containingWord w = filter (isInfixOf w) . map getMessage . sortByTimestamp
@@ -85,14 +85,9 @@ getMessage (Unknown _) = ""
 sortByTimestamp :: [LogMessage] -> [LogMessage]
 sortByTimestamp = inOrder . build
 
--- remove this
-relevant :: Int -> [LogMessage] -> [LogMessage]
-relevant severity = filter matchingSeverity 
-                    where
-                         -- make this a top-level function
-                         matchingSeverity :: LogMessage -> Bool
-                         matchingSeverity (LogMessage (Error sev) _ _) | sev > severity = True
-                         matchingSeverity _ = False
+matchingSeverity :: Int -> LogMessage -> Bool
+matchingSeverity severity (LogMessage (Error sev) _ _) | sev > severity = True
+matchingSeverity _ _ = False
 
 -- verification methods
 
