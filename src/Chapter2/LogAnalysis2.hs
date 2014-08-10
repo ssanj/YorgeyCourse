@@ -6,6 +6,7 @@ module Chapter2.LogAnalysis2 (parseMessage,
                      build,
                      inOrder,
                      whatWentWrong,
+                     safeParseInt,
                      verify1,
                      verify2,
                      verify3,
@@ -18,12 +19,13 @@ module Chapter2.LogAnalysis2 (parseMessage,
 import Chapter2.Log
 import Data.List (isInfixOf)
 import Data.Char
+import Data.Maybe (listToMaybe, fromMaybe)
+import Control.Applicative
 import System.FilePath.Posix
 
 -- LogFormat
 -- ^[I|W|(E Severity)] Timestamp Text$
 
--- TODO: Refactor
 -- exercise 1
 parseMessage :: String -> LogMessage
 parseMessage line = case words line of
@@ -88,6 +90,32 @@ sortByTimestamp = inOrder . build
 matchingSeverity :: Int -> LogMessage -> Bool
 matchingSeverity severity (LogMessage (Error sev) _ _) | sev > severity = True
 matchingSeverity _ _ = False
+
+-- more safety functions
+safeParseInt :: String -> Maybe Int
+safeParseInt = listToMaybe . map fst . filter (null . snd) . reads
+
+safeParseMessage :: String -> LogMessage
+safeParseMessage s = fromMaybe (Unknown s) $ case words s of
+    "I" : l : xs -> buildM (pure Info) l xs
+    "W" : l : xs -> buildM (pure Warning) l xs
+    "E" : e : l : xs -> buildM (Error <$> safeParseInt e) l xs
+    _ -> Nothing
+  where
+    buildM mt l xs = LogMessage <$> mt <*> safeParseInt l <*> pure (unwords xs)
+
+-- less duplication
+leanerParseMessage :: String -> LogMessage
+leanerParseMessage msg = case words msg of
+    "I" : xs -> mkMessage Info xs
+    "W" : xs -> mkMessage Warning xs
+    "E" : err : xs -> mkMessage (mkError err) xs
+    _ -> Unknown msg
+ where
+    mkError s             = Error (read s)
+    mkMessage _ []        = Unknown msg
+    mkMessage mt (t : xs) = LogMessage mt (read t) (unwords xs)
+
 
 -- verification methods
 
