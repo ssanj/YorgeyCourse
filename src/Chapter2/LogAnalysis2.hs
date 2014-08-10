@@ -7,6 +7,7 @@ module Chapter2.LogAnalysis2 (parseMessage,
                      inOrder,
                      whatWentWrong,
                      safeParseInt,
+                     safeParseInt2,
                      verify1,
                      verify2,
                      verify3,
@@ -94,6 +95,12 @@ matchingSeverity _ _ = False
 -- more safety functions
 safeParseInt :: String -> Maybe Int
 safeParseInt = listToMaybe . map fst . filter (null . snd) . reads
+
+-- not sure if this version of safeParseInt is "clearer" as the matching and extraction happen in the match
+safeParseInt2 :: String -> Maybe Int
+safeParseInt2 value = case (reads value) of
+                       [(x, "")] -> Just x
+                       _ -> Nothing
 
 safeParseMessage :: String -> LogMessage
 safeParseMessage s = fromMaybe (Unknown s) $ case words s of
