@@ -59,7 +59,7 @@ insert :: LogMessage -> MessageTree -> MessageTree
 insert (Unknown _) ms = ms
 insert lm Leaf = Node Leaf lm Leaf
 insert (LogMessage {}) un@(Node _ (Unknown _) _) = un
-insert lmi@(LogMessage _ tsi _) (Node left lme@(LogMessage _ tse _) right) = 
+insert lmi@(LogMessage _ tsi _) (Node left lme@(LogMessage _ tse _) right) =
   if tsi > tse then
     Node left lme (insert lmi right)
   else Node (insert lmi left) lme right
@@ -102,6 +102,7 @@ safeParseInt2 value = case (reads value) of
                        [(x, "")] -> Just x
                        _ -> Nothing
 
+{-# ANN safeParseMessage "HLint: ignore" #-}
 safeParseMessage :: String -> LogMessage
 safeParseMessage s = fromMaybe (Unknown s) $ case words s of
     "I" : l : xs -> buildM (pure Info) l xs
@@ -111,6 +112,7 @@ safeParseMessage s = fromMaybe (Unknown s) $ case words s of
   where
     buildM mt l xs = LogMessage <$> mt <*> safeParseInt l <*> pure (unwords xs)
 
+{-# ANN leanerParseMessage "HLint: ignore" #-}
 -- less duplication
 leanerParseMessage :: String -> LogMessage
 leanerParseMessage msg = case words msg of
