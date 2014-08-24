@@ -8,5 +8,5 @@ main = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Tests" [
-            Chap3.unitTests, Chap3.propertyTests
+            Chap3.allTests
         ]
