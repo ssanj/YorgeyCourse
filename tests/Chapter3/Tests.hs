@@ -21,7 +21,8 @@ localMaximaUnitTests :: TestTree
 localMaximaUnitTests = testGroup "unit tests for localMaxima" [
                 testCase "withTwoLocalMaxima" localMaxima1,
                 testCase "withOneLocalMaxima" localMaxima2,
-                testCase "withNoLocalMaxima" localMaxima3
+                testCase "withNoLocalMaxima" localMaxima3,
+                testCase "withEmptyList" localMaxima4
             ]
 
 
@@ -49,6 +50,9 @@ localMaxima2 = localMaxima [2,3,4,1,5] @?= [4]
 
 localMaxima3 :: Assertion
 localMaxima3 = localMaxima [1,2,3,4,5] @?= []
+
+localMaxima4 :: Assertion
+localMaxima4 = localMaxima [] @?= []
 
 skipPropertyTests :: TestTree
 skipPropertyTests = testGroup "(checked by QuickCheck)"
