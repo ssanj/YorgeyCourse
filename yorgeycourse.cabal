@@ -20,7 +20,7 @@ library
   -- other-modules:
   -- other-extensions:
   Ghc-options:         -Wall
-  build-depends:       base >=4.6 && <4.7
+  build-depends:       base
                        ,filepath
 
   hs-source-dirs:      src
@@ -32,7 +32,7 @@ test-suite test
   hs-source-dirs:      tests
   main-is:             Test.hs
   Ghc-options:         -Wall
-  build-depends:         base >= 4.6 &&  < 4.7
+  build-depends:         base
                        , tasty
                        , tasty-hunit
                        , tasty-quickcheck,

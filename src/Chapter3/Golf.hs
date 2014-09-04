@@ -1,4 +1,6 @@
-module Chapter3.Golf (skips, localMaxima) where
+module Chapter3.Golf (skips, localMaxima, histogram, row) where
+
+import Data.List (intercalate)
 
 skips :: [a] -> [[a]]
 skips [] =  []
@@ -13,3 +15,39 @@ localMaxima  (b:e:a:xs)
     | e > b && e > a = e : localMaxima (a : xs)
     | otherwise = localMaxima (e : a : xs)
 localMaxima _ = []
+
+histogram :: [Integer] -> String
+histogram xs = let allRows = [ row (replicate 10 ' ') r | r <- rowOrder [[]] xs]
+                   allRowWithTitle = "" : numbers : underline : allRows
+                   withNewLines = intercalate "\n" (reverse allRowWithTitle)
+                in withNewLines
+
+-- creates  a single row
+row :: String -> [Integer] -> String
+row acc [] = acc
+row acc (x:xs)  =
+        let (before, after) = splitAt (fromIntegral x :: Int) acc
+            newAcc = before ++ ('*' : tail after)
+        in row newAcc xs
+
+underline :: String
+underline =  replicate 10 '='
+
+numbers :: String
+numbers = "0123456789"
+
+rowOrder :: [[Integer]] -> [Integer] -> [[Integer]]
+rowOrder  acc [] = acc
+rowOrder acc (x:xs) = rowOrder (insertAt acc x) xs
+
+-- find the correct place to insert the new integer
+insertAt :: [[Integer]] -> Integer -> [[Integer]]
+insertAt [] y = [[y]]
+insertAt  (xx:xxs) y
+    | all (/= y) xx = (y : xx) : xxs
+    | otherwise = xx : insertAt xxs y
+
+-- [[]]   1 -> [[1]]
+-- [[1]]  1 -> [[1],[1]]
+-- [[1],[1]]  1 ->  [[1],[1], [1]]
+-- [[1],[1], [1]] 5 -> [[5:1],[1], [1]] -> [[1],[1],[5:1]]

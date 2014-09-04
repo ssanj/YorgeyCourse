@@ -6,7 +6,7 @@ import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck as QC
 
 allTests :: TestTree
-allTests = testGroup "Chapter3 tests" [skipUnitTests, skipPropertyTests, localMaximaUnitTests]
+allTests = testGroup "Chapter3 tests" [skipUnitTests, skipPropertyTests, localMaximaUnitTests, historGramUnitTests]
 
 skipUnitTests ::  TestTree
 skipUnitTests =  testGroup "unit tests for skip" [
@@ -25,6 +25,12 @@ localMaximaUnitTests = testGroup "unit tests for localMaxima" [
                 testCase "withEmptyList" localMaxima4
             ]
 
+historGramUnitTests :: TestTree
+historGramUnitTests = testGroup "unit tests for histogram" [
+                    testCase "with [3,5]" histogram1,
+                    testCase "with [1,1,1,5]" histogram2,
+                    testCase "with [1,4,5,4,6,6,3,4,2,4,9]" histogram3
+            ]
 
 skips1 :: Assertion
 
@@ -58,3 +64,12 @@ skipPropertyTests :: TestTree
 skipPropertyTests = testGroup "(checked by QuickCheck)"
   [ QC.testProperty "length xs == length (skips xs)" $
       \xs -> length (xs :: [Int]) == length (skips xs)]
+
+histogram1 :: Assertion
+histogram1 = histogram [3,5] @?=  "   * *    \n==========\n0123456789\n"
+
+histogram2 :: Assertion
+histogram2 = histogram [1,1,1,5] @?= " *        \n *        \n *   *    \n==========\n0123456789\n"
+
+histogram3 :: Assertion
+histogram3 = histogram [1,4,5,4,6,6,3,4,2,4,9] @?= "    *     \n    *     \n    * *   \n ******  *\n==========\n0123456789\n"
