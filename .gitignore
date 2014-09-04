@@ -1,1 +1,4 @@
 dist
+.cabal-sandbox
+.hpc
+cabal.sandbox.config
