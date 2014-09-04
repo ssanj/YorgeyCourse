@@ -6,7 +6,6 @@ skips :: [a] -> [[a]]
 skips [] =  []
 skips xs = map ((flip filterSkip) xs) [1..(length xs)]
 
-
 filterSkip :: Int -> [a] -> [a]
 filterSkip n = map snd . filter (\(i,_) -> i `mod` n == 0) . zip [1..]
 
@@ -18,8 +17,8 @@ localMaxima _ = []
 
 histogram :: [Integer] -> String
 histogram xs = let allRows = [ row (replicate 10 ' ') r | r <- rowOrder [[]] xs]
-                   allRowWithTitle = "" : numbers : underline : allRows
-                   withNewLines = intercalate "\n" (reverse allRowWithTitle)
+                   allRowsWithLegend = "" : numbers : underline : allRows
+                   withNewLines = intercalate "\n" (reverse allRowsWithLegend)
                 in withNewLines
 
 -- creates  a single row
@@ -46,8 +45,3 @@ insertAt [] y = [[y]]
 insertAt  (xx:xxs) y
     | all (/= y) xx = (y : xx) : xxs
     | otherwise = xx : insertAt xxs y
-
--- [[]]   1 -> [[1]]
--- [[1]]  1 -> [[1],[1]]
--- [[1],[1]]  1 ->  [[1],[1], [1]]
--- [[1],[1], [1]] 5 -> [[5:1],[1], [1]] -> [[1],[1],[5:1]]

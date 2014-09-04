@@ -8,32 +8,31 @@ import Test.Tasty.QuickCheck as QC
 allTests :: TestTree
 allTests = testGroup "Chapter3 tests" [skipUnitTests, skipPropertyTests, localMaximaUnitTests, historGramUnitTests]
 
-skipUnitTests ::  TestTree
+skipUnitTests :: TestTree
 skipUnitTests =  testGroup "unit tests for skip" [
-                testCase "emptyList" skips1,
-                testCase "singletonList" skips2,
-                testCase "listWithFourCharacters" skips3,
-                testCase "listWithSixCharacters" skips4,
-                testCase "listTrueAndFalse" skips5
+                 testCase "emptyList" skips1,
+                 testCase "singletonList" skips2,
+                 testCase "listWithFourCharacters" skips3,
+                 testCase "listWithSixCharacters" skips4,
+                 testCase "listTrueAndFalse" skips5
             ]
 
 localMaximaUnitTests :: TestTree
-localMaximaUnitTests = testGroup "unit tests for localMaxima" [
-                testCase "withTwoLocalMaxima" localMaxima1,
-                testCase "withOneLocalMaxima" localMaxima2,
-                testCase "withNoLocalMaxima" localMaxima3,
-                testCase "withEmptyList" localMaxima4
+localMaximaUnitTests =  testGroup "unit tests for localMaxima" [
+                        testCase "withTwoLocalMaxima" localMaxima1,
+                        testCase "withOneLocalMaxima" localMaxima2,
+                        testCase "withNoLocalMaxima" localMaxima3,
+                        testCase "withEmptyList" localMaxima4
             ]
 
 historGramUnitTests :: TestTree
 historGramUnitTests = testGroup "unit tests for histogram" [
-                    testCase "with [3,5]" histogram1,
-                    testCase "with [1,1,1,5]" histogram2,
-                    testCase "with [1,4,5,4,6,6,3,4,2,4,9]" histogram3
+                      testCase "with [3,5]" histogram1,
+                      testCase "with [1,1,1,5]" histogram2,
+                      testCase "with [1,4,5,4,6,6,3,4,2,4,9]" histogram3
             ]
 
 skips1 :: Assertion
-
 skips1 = skips ([]::[Int]) @?= ([] :: [[Int]])
 
 skips2 :: Assertion
